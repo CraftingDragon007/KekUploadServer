@@ -10,7 +10,13 @@
     <ItemGroup>
         <PackageReference Include="HashLib" Version="2.0.1" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+        <PackageReference Include="Npgsql" Version="7.0.0-preview.4" />
+        <PackageReference Include="SharpHash_Ron4fun" Version="1.1.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="uploads" />
     </ItemGroup>
 
 </Project>
