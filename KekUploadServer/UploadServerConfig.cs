@@ -2,7 +2,7 @@ namespace KekUploadServer;
 
 public class UploadServerConfig
 {
-    public UploadServerConfig(int port, string address, string apiBaseUrl, string tmpFolder, string uploadFolder, string webRoot, string databaseUser, string databasePassword, string databaseHost, string databaseName, string embedDescription, string embedColor, string downloadUrl, int chunkSize)
+    public UploadServerConfig(int port, string address, string apiBaseUrl, string tmpFolder, string uploadFolder, string webRoot, string databaseUser, string databasePassword, string databaseHost, string databaseName, string embedDescription, string embedColor, string downloadUrl, int chunkSize, string videoUrl)
     {
         Port = port;
         Address = address;
@@ -18,6 +18,7 @@ public class UploadServerConfig
         EmbedColor = embedColor;
         DownloadUrl = downloadUrl;
         ChunkSize = chunkSize;
+        VideoUrl = videoUrl;
     }
     
     public UploadServerConfig()
@@ -35,6 +36,7 @@ public class UploadServerConfig
         EmbedDescription = "File";
         EmbedColor = "#ffffff";
         DownloadUrl = "http://localhost:6942/api/d/";
+        VideoUrl = "http://localhost:6942/api/v/";
         ChunkSize = 2048;
     }
 
@@ -55,6 +57,7 @@ public class UploadServerConfig
     public string EmbedDescription { get; set; }
     public string EmbedColor { get; set; }
     public string DownloadUrl { get; set; }
+    public string VideoUrl { get; set; }
     
     public int ChunkSize { get; set; }
 
