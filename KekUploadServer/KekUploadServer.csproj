@@ -13,10 +13,25 @@
         <PackageReference Include="Npgsql" Version="7.0.0-preview.4" />
         <PackageReference Include="SharpHash_Ron4fun" Version="1.1.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
+        <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0-preview.5.22301.12" />
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="thumbs" />
       <Folder Include="uploads" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Legal.html" />
+      <EmbeddedResource Include="Legal.html" />
+      <None Remove="VideoPlayer.html" />
+      <Resource Include="VideoPlayer.html" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="MediaToolkit.Core">
+        <HintPath>..\..\MediaToolkit\MediaToolkit src\MediaToolkit.Core\bin\Debug\net6.0\MediaToolkit.Core.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>
