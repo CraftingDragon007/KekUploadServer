@@ -4,13 +4,14 @@
     <title>%name%</title>
     <link href='https://vjs.zencdn.net/7.19.2/video-js.css' rel=\"stylesheet\"/>
     <meta charset='UTF-8'>
-    <meta content='website' property='og:type'>
-    <meta content='summary_large_image' property='twitter:card'>
-    <meta content='%name%.%extension%' name='title'>
-    <meta content='%name%.%extension%' property='og:title'>
-    <meta content='%videoEmbedColor%' name='theme-color'>
-    <meta content='%description%' name='description'>
-    <meta property='og:image' content='%thumbnail%'>
+    <meta property='og:type' content='website'>
+    <meta property='twitter:card' content='summary_large_image'>
+    <meta name='title' content='%name%.%extension%'>
+    <meta property='og:title' content='%name%.%extension%'>
+    <meta name='theme-color' content='%videoEmbedColor%'>
+    <meta name='description' content='%description%'>
+    <meta property='og:description' content='%description%'>
+    <meta content='%thumbnail%' property='og:image'>
     <meta property='twitter:image' content='%thumbnail%'>
 </head>
 <body>
@@ -29,12 +30,11 @@
 <!--script src=https://vjs.zencdn.net/7.19.2/video.min.js></script-->
 <br>
 <a href='%downloadUrl%'>Download this video!</a>
-<p>For legal notices visit <a href='%rootUrl%/legal'>this</a> site</p>
+<p>For legal notices visit <a href='%rootUrl%legal'>this</a> site</p>
 <br>
 <h3 id="vidInfo"></h3>
 <p id="metadata"></p>
 </body>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/json2html/2.2.1/json2html.min.js"></script>
 <script>
     function httpGet(url){
         let xmlHttpRequest = new XMLHttpRequest();

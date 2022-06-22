@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="CraftingDragon007.MediaToolkit" Version="2.0.0" />
         <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.2.8" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
         <PackageReference Include="Npgsql" Version="7.0.0-preview.4" />
@@ -25,13 +26,7 @@
       <None Remove="Legal.html" />
       <EmbeddedResource Include="Legal.html" />
       <None Remove="VideoPlayer.html" />
-      <Resource Include="VideoPlayer.html" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Reference Include="MediaToolkit.Core">
-        <HintPath>..\..\MediaToolkit\MediaToolkit src\MediaToolkit.Core\bin\Debug\net6.0\MediaToolkit.Core.dll</HintPath>
-      </Reference>
+      <EmbeddedResource Include="VideoPlayer.html" />
     </ItemGroup>
 
 </Project>

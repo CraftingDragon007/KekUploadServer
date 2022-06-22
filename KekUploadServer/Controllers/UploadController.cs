@@ -291,7 +291,7 @@ public class UploadController : Controller
             stream.Seek(startByte, SeekOrigin.Begin);
             var read = stream.Read(range, 0, lenght);
             stream.Close();
-        }catch(Exception e)
+        }catch(Exception)
         {
             return notFound;
         }
@@ -344,14 +344,9 @@ public class UploadController : Controller
         html = html.Replace("%extension%", extension);
         html = html.Replace("%downloadUrl%", config.DownloadUrl + id);
         html = html.Replace("%rootUrl%", config.RootUrl);
-        html = html.Replace("%thumbnail%", config.RootUrl + "/t/" + id);
+        html = html.Replace("%thumbnail%", config.RootUrl + "t/" + id);
         html = html.Replace("%videoEmbedColor%", config.VideoEmbedColor);
         return base.Content(html, "text/html");
-        var text = System.IO.File.ReadAllText("VideoPlayer.html");
-        text = text.Replace("%name%", name);
-        text = text.Replace("%id%", id);
-        text = text.Replace("%url%", Data.EnsureNotNullConfig().RootUrl);
-        return base.Content(text, "text/html");
     }
     
     [HttpGet]

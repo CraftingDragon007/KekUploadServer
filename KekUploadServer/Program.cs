@@ -98,7 +98,7 @@ AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
     foreach (var uploadStream in Data.UploadStreams)
     {
         uploadStream.FileStream.Close();
-        File.Delete("uploads/" + uploadStream.UploadStreamId + ".upload");
+        File.Delete(Data.EnsureNotNullConfig().UploadFolder + uploadStream.UploadStreamId + ".upload");
     }
 };
 

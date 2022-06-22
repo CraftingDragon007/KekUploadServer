@@ -30,9 +30,9 @@ public class VideoStream
                 }
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return;
+            // ignored
         }
         finally
         {
