@@ -18,11 +18,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="thumbs" />
-      <Folder Include="uploads" />
-    </ItemGroup>
-
-    <ItemGroup>
       <None Remove="Legal.html" />
       <EmbeddedResource Include="Legal.html" />
       <None Remove="VideoPlayer.html" />

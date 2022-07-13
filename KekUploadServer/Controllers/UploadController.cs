@@ -324,7 +324,7 @@ public class UploadController : Controller
         }
         var path = Data.EnsureNotNullConfig().UploadFolder + streamId + ".upload";
         if (!System.IO.File.Exists(path)) return notFound;
-        var videoExtensions = new List<string> { ".MP4", ".MOV", ".M4V", ".AVI", ".WMV", ".MPG", ".MPEG", ".OGG", ".WEBM" };
+        var videoExtensions = new List<string> { ".MP4", ".MOV", ".M4V", ".AVI", ".WMV", ".MPG", ".MPEG", ".OGG", ".WEBM", ".MKV" };
         if (!videoExtensions.Contains("." + extension.ToUpper())) return new JsonResult(new { generic = "NOT_VIDEO", field = "ID", error = "File is not a video" })
         {
             ContentType = "application/json",
@@ -403,7 +403,7 @@ public class UploadController : Controller
         }
         var path = Data.EnsureNotNullConfig().UploadFolder + streamId + ".upload";
         if (!System.IO.File.Exists(path)) return notFound;
-        var videoExtensions = new List<string> { ".MP4", ".MOV", ".M4V", ".AVI", ".WMV", ".MPG", ".MPEG", ".OGG", ".WEBM" };
+        var videoExtensions = new List<string> { ".MP4", ".MOV", ".M4V", ".AVI", ".WMV", ".MPG", ".MPEG", ".OGG", ".WEBM", ".MKV" };
         if (!videoExtensions.Contains("." + extension.ToUpper())) return new JsonResult(new { generic = "NOT_VIDEO", field = "ID", error = "File is not a video" })
         {
             ContentType = "application/json",
@@ -454,7 +454,7 @@ public class UploadController : Controller
                               $"<meta name='theme-color' content='{Data.EnsureNotNullConfig().EmbedColor}'>" +
                               $"<meta name='description' content='{description}'>");
         var imageExtensions = new List<string> { ".JPG", ".JPEG", ".JPE", ".BMP", ".GIF", ".PNG" };
-        var videoExtensions = new List<string> { ".MP4", ".MOV", ".M4V", ".AVI", ".WMV", ".MPG", ".MPEG", ".OGG", ".WEBM" };
+        var videoExtensions = new List<string> { ".MP4", ".MOV", ".M4V", ".AVI", ".WMV", ".MPG", ".MPEG", ".OGG", ".WEBM", ".MKV" };
         if (imageExtensions.Contains("." + extension.ToUpper()))
         {
             contentBuilder.Append($"<meta property='og:image' content='{Data.EnsureNotNullConfig().DownloadUrl + id}'>" + 
@@ -464,8 +464,8 @@ public class UploadController : Controller
         }
         if(videoExtensions.Contains("." + extension.ToUpper()))
         {
-            contentBuilder.Append($"<meta property='og:image' content='{Data.EnsureNotNullConfig().RootUrl + "/t/" + id}'>" + 
-                                  $"<meta property='twitter:image' content='{Data.EnsureNotNullConfig().RootUrl + "/t/" + id}'>" + 
+            contentBuilder.Append($"<meta property='og:image' content='{Data.EnsureNotNullConfig().RootUrl + "t/" + id}'>" + 
+                                  $"<meta property='twitter:image' content='{Data.EnsureNotNullConfig().RootUrl + "t/" + id}'>" + 
                                   $"<meta property='og:description' content='{description + "\n" + "Watch video at: " + Data.EnsureNotNullConfig().VideoUrl + id}'>" +
                                   $"<meta property='twitter:description' content='{description + "\n" + "Watch video at: " + Data.EnsureNotNullConfig().VideoUrl + id}'>");
         }

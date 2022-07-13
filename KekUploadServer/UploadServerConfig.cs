@@ -40,7 +40,7 @@ public class UploadServerConfig
         EmbedColor = "#ffffff";
         DownloadUrl = $"http://localhost:{Port}/d/";
         VideoUrl = $"http://localhost:{Port}/v/";
-        RootUrl = $"http://localhost:{Port}";
+        RootUrl = $"http://localhost:{Port}/";
         ChunkSize = 2048;
         IdSize = 8;
         VideoEmbedColor = "#007fff";
