@@ -366,7 +366,13 @@ public class UploadController : Controller
         }
         var extension = Data.GetExtensionFromId(id);
         var name = Data.GetNameFromId(id);
-        
+        var videoExtensions = new List<string> { ".MP4", ".MOV", ".M4V", ".AVI", ".WMV", ".MPG", ".MPEG", ".OGG", ".WEBM", ".MKV" };
+        if (!videoExtensions.Contains("." + extension.ToUpper())) return new JsonResult(new { generic = "NOT_VIDEO", field = "ID", error = "File is not a video" })
+        {
+            ContentType = "application/json",
+            SerializerSettings = null,
+            StatusCode = 405
+        };
         var path = Data.EnsureNotNullConfig().UploadFolder + streamId + ".upload";
         if (!System.IO.File.Exists(path)) return notFound;
         var metadata = Data.GetVideoMetadata(path);
@@ -461,13 +467,18 @@ public class UploadController : Controller
                                   $"<meta property='twitter:image' content='{Data.EnsureNotNullConfig().DownloadUrl + id}'>" + 
                                   $"<meta property='og:description' content='{description}'>" +
                                   $"<meta property='twitter:description' content='{description}'>");
-        }
+        }else
         if(videoExtensions.Contains("." + extension.ToUpper()))
         {
             contentBuilder.Append($"<meta property='og:image' content='{Data.EnsureNotNullConfig().RootUrl + "t/" + id}'>" + 
                                   $"<meta property='twitter:image' content='{Data.EnsureNotNullConfig().RootUrl + "t/" + id}'>" + 
                                   $"<meta property='og:description' content='{description + "\n" + "Watch video at: " + Data.EnsureNotNullConfig().VideoUrl + id}'>" +
                                   $"<meta property='twitter:description' content='{description + "\n" + "Watch video at: " + Data.EnsureNotNullConfig().VideoUrl + id}'>");
+        }
+        else
+        {
+            contentBuilder.Append($"<meta property='og:description' content='{description}'>" +
+                                  $"<meta property='twitter:description' content='{description}'>");
         }
 
         return base.Content(contentBuilder.ToString(), "text/html");
