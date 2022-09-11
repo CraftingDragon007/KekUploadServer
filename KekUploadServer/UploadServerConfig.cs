@@ -74,7 +74,7 @@ public class UploadServerConfig
         return $"Port: {Port}\n" +
                $"Address: {Address}\n" +
                $"UploadFolder: {UploadFolder}\n" +
-               $"ThumbnailsFolder: {ThumbnailsFolder}" +
+               $"ThumbnailsFolder: {ThumbnailsFolder}\n" +
                $"WebRoot: {WebRoot}\n" +
                $"DatabaseUser: {DatabaseUser}\n" +
                $"DatabasePassword: {DatabasePassword}\n" +
