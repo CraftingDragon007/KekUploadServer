@@ -48,7 +48,7 @@ public class UploadController : Controller
     [Route("c/{ext}")]
     public IActionResult Create(string ext)
     {
-        var streamId = Data.RandomString(64);
+        var streamId = Data.RandomString(Data.EnsureNotNullConfig().IdSize);
         FileStream fileStream;
         try
         {
@@ -71,7 +71,7 @@ public class UploadController : Controller
     [Route("c/{ext}/{name}")]
     public IActionResult Create(string ext, string name)
     {
-        var streamId = Data.RandomString(64);
+        var streamId = Data.RandomString(Data.EnsureNotNullConfig().IdSize);
         FileStream fileStream;
         try
         {
