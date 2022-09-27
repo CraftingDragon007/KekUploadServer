@@ -35,9 +35,9 @@ jobs:
           draft: false
           prerelease: true
 
-          tag: "release_${{ steps.versionnumber.outputs.version_number }}_build_${{ github.GITHUB_RUN_NUMBER }}_${{ github.GITHUB_RUN_ID }}"
-          release_name: "Build: ${{ github.GITHUB_RUN_NUMBER }}.${{ github.GITHUB_RUN_ID }} Version:${{ steps.versionnumber.outputs.version_number }} Commit:${{ steps.commithash.outputs.sha_short }}"
-          release_body: "This is an automated build\n\n**Build:** ${{ github.GITHUB_RUN_NUMBER }}.${{ github.GITHUB_RUN_ID }}\n**Version:** ${{ steps.versionnumber.outputs.version_number }}\n**Commit:** ${{ steps.commithash.outputs.sha_short }}"
+          tag: "release_${{ steps.versionnumber.outputs.version_number }}_build_${{ env.GITHUB_RUN_NUMBER }}_${{ env.GITHUB_RUN_ID }}"
+          release_name: "Build: ${{ env.GITHUB_RUN_NUMBER }}.${{ env.GITHUB_RUN_ID }} Version:${{ steps.versionnumber.outputs.version_number }} Commit:${{ steps.commithash.outputs.sha_short }}"
+          release_body: "This is an automated build\n\n**Build:** ${{ env.GITHUB_RUN_NUMBER }}.${{ env.GITHUB_RUN_ID }}\n**Version:** ${{ steps.versionnumber.outputs.version_number }}\n**Commit:** ${{ steps.commithash.outputs.sha_short }}"
 
   buildMatrix:
     name: Publish for ${{ matrix.os }}
