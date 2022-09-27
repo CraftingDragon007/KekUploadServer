@@ -365,7 +365,10 @@ public class UploadController : Controller
             return notFound;
         }
         var extension = Data.GetExtensionFromId(id);
-        var name = Data.GetNameFromId(id);
+        if(extension == null)
+        {
+            extension = string.Empty;
+        }
         var videoExtensions = new List<string> { ".MP4", ".MOV", ".M4V", ".AVI", ".WMV", ".MPG", ".MPEG", ".OGG", ".WEBM", ".MKV" };
         if (!videoExtensions.Contains("." + extension.ToUpper())) return new JsonResult(new { generic = "NOT_VIDEO", field = "ID", error = "File is not a video" })
         {

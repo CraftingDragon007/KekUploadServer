@@ -20,11 +20,9 @@ jobs:
         id: commithash
         run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
-      - name: Generate build number
-        id: buildnumber
-        uses: einaregilsson/build-number@v3
-        with:
-          token: ${{ secrets.github_token }}
+      - name: Parse version
+        id: versionnumber
+        run: echo "::set-output name=version_number::$(xpath -q -e /Project/PropertyGroup/AssemblyVersion/text() ./KekUploadServer/KekUploadServer.csproj)"
 
       - name: Create a release
         id: release
@@ -34,12 +32,12 @@ jobs:
 
           skip_errors: true
 
-          draft: true
+          draft: false
           prerelease: true
 
-          tag: "build_${{ steps.buildnumber.outputs.build_number }}"
-          release_name: "build:${{ steps.commithash.outputs.sha_short }}"
-          release_body: "This is an automated build"
+          tag: "release_${{ steps.versionnumber.outputs.version_number }}_build_${{ github.GITHUB_RUN_NUMBER }}_${{ github.GITHUB_RUN_ID }}"
+          release_name: "Build: ${{ github.GITHUB_RUN_NUMBER }}.${{ github.GITHUB_RUN_ID }} Version:${{ steps.versionnumber.outputs.version_number }} Commit:${{ steps.commithash.outputs.sha_short }}"
+          release_body: "This is an automated build\n\n**Build:** ${{ github.GITHUB_RUN_NUMBER }}.${{ github.GITHUB_RUN_ID }}\n**Version:** ${{ steps.versionnumber.outputs.version_number }}\n**Commit:** ${{ steps.commithash.outputs.sha_short }}"
 
   buildMatrix:
     name: Publish for ${{ matrix.os }}

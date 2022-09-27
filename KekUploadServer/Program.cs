@@ -1,10 +1,20 @@
+using System.Diagnostics;
 using System.Net;
+using System.Reflection;
 using KekUploadServer;
 using Npgsql;
 
 Console.WriteLine("░█░█░█▀▀░█░█░█░█░█▀█░█░░░█▀█░█▀█░█▀▄░█▀▀░█▀▀░█▀▄░█░█░█▀▀░█▀▄░░░█▀▀░▄█▄█▄\n" +
                   "░█▀▄░█▀▀░█▀▄░█░█░█▀▀░█░░░█░█░█▀█░█░█░▀▀█░█▀▀░█▀▄░▀▄▀░█▀▀░█▀▄░░░█░░░▄█▄█▄\n" +
                   "░▀░▀░▀▀▀░▀░▀░▀▀▀░▀░░░▀▀▀░▀▀▀░▀░▀░▀▀░░▀▀▀░▀▀▀░▀░▀░░▀░░▀▀▀░▀░▀░░░▀▀▀░░▀░▀░");
+var assembly = Assembly.GetExecutingAssembly();
+var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+var version = fvi.FileVersion;
+
+if (!string.IsNullOrWhiteSpace(version))
+{
+    Console.WriteLine("Version: " + version);
+}
 
 
 if (File.Exists("config.xml"))
@@ -68,10 +78,10 @@ con.Open();
 Console.WriteLine("Database connection established");
 
 var cmd = new NpgsqlCommand("SELECT version()", con);
-var version = (string?)cmd.ExecuteScalar();
-Console.WriteLine(version == null
+var psqlVersion = (string?)cmd.ExecuteScalar();
+Console.WriteLine(psqlVersion == null
     ? "WARNING: Could not determine database version! Proceed with caution!"
-    : $"PostgreSQL version: {version}");
+    : $"PostgreSQL version: {psqlVersion}");
 
 var cmd2 = new NpgsqlCommand("create table if not exists files\n" +
                              "(\n" +
