@@ -38,7 +38,7 @@ jobs:
           draft: false
           prerelease: true
 
-          tag: "release__build_${{ github.run_number }}_${{ github.run_id }}"
+          tag: "release_${{ steps.versionnumber.outputs.version_number }}_build_${{ github.run_number }}_${{ github.run_id }}"
           release_name: "Build: ${{ github.run_number }}.${{ github.run_id }} Version: ${{ steps.versionnumber.outputs.version_number }} Commit: ${{ steps.commithash.outputs.sha_short }}"
           release_body: "This is an automated build\n\n**Build:** ${{ github.run_number }}.${{ github.run_id }}\n**Version:** ${{ steps.versionnumber.outputs.version_number }}\n**Commit:** ${{ steps.commithash.outputs.sha_short }}"
 
