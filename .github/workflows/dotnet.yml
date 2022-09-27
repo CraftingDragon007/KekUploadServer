@@ -20,6 +20,9 @@ jobs:
         id: commithash
         run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
+      - name: Install xpath
+        run: sudo apt-get install -y libxml-xpath-perl
+        
       - name: Parse version
         id: versionnumber
         run: echo "::set-output name=version_number::$(xpath -q -e /Project/PropertyGroup/AssemblyVersion/text\(\) ./KekUploadServer/KekUploadServer.csproj)"
@@ -35,9 +38,9 @@ jobs:
           draft: false
           prerelease: true
 
-          tag: "release_${{ steps.versionnumber.outputs.version_number }}_build_${{ env.GITHUB_RUN_NUMBER }}_${{ env.GITHUB_RUN_ID }}"
-          release_name: "Build: ${{ env.GITHUB_RUN_NUMBER }}.${{ env.GITHUB_RUN_ID }} Version:${{ steps.versionnumber.outputs.version_number }} Commit:${{ steps.commithash.outputs.sha_short }}"
-          release_body: "This is an automated build\n\n**Build:** ${{ env.GITHUB_RUN_NUMBER }}.${{ env.GITHUB_RUN_ID }}\n**Version:** ${{ steps.versionnumber.outputs.version_number }}\n**Commit:** ${{ steps.commithash.outputs.sha_short }}"
+          tag: "release_${{ steps.versionnumber.outputs.version_number }}_build_${{ github.run_number }}_${{ github.run_id }}"
+          release_name: "Build: ${{ github.run_number }}.${{ github.run_id }} Version:${{ steps.versionnumber.outputs.version_number }} Commit:${{ steps.commithash.outputs.sha_short }}"
+          release_body: "This is an automated build\n\n**Build:** ${{ github.run_number }}.${{ github.run_id }}\n**Version:** ${{ steps.versionnumber.outputs.version_number }}\n**Commit:** ${{ steps.commithash.outputs.sha_short }}"
 
   buildMatrix:
     name: Publish for ${{ matrix.os }}
