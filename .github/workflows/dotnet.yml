@@ -7,7 +7,7 @@ on:
 
 jobs:
   prepare:
-    permissions: read-all|write-all
+    permissions: write-all
     runs-on: ubuntu-latest
     outputs:
       BUILD_ID: ${{ steps.buildnumber.outputs.build_number }}
