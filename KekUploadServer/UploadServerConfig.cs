@@ -77,7 +77,7 @@ public class UploadServerConfig
                $"ThumbnailsFolder: {ThumbnailsFolder}\n" +
                $"WebRoot: {WebRoot}\n" +
                $"DatabaseUser: {DatabaseUser}\n" +
-               $"DatabasePassword: {DatabasePassword}\n" +
+               $"DatabasePassword: {new string('*', DatabasePassword.Length)}\n" +
                $"DatabaseHost: {DatabaseHost}\n" +
                $"DatabaseName: {DatabaseName}\n" +
                $"EmbedDescription: {EmbedDescription}\n" +
