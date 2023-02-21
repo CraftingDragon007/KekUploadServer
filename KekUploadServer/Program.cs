@@ -55,15 +55,6 @@ if(config.Address.Equals("0.0.0.0") || config.Address.Equals("[::]")){
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-//app.UseHttpsRedirection();
-
 app.UseAuthorization();
 
 app.MapControllers();
