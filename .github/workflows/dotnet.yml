@@ -7,6 +7,7 @@ on:
 
 jobs:
   prepare:
+    permissions: write-all
     runs-on: ubuntu-latest
     outputs:
       BUILD_ID: ${{ steps.buildnumber.outputs.build_number }}
@@ -43,6 +44,7 @@ jobs:
           release_body: "This is an automated build\n\n**Build:** ${{ github.run_number }}.${{ github.run_id }}\n**Version:** ${{ steps.versionnumber.outputs.version_number }}\n**Commit:** ${{ steps.commithash.outputs.sha_short }}"
 
   buildMatrix:
+    permissions: write-all
     name: Publish for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
 
