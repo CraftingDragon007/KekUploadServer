@@ -2,7 +2,10 @@ namespace KekUploadServer;
 
 public class UploadServerConfig
 {
-    public UploadServerConfig(int port, string address, string uploadFolder, string thumbnailsFolder, string webRoot, string databaseUser, string databasePassword, string databaseHost, string databaseName, string embedDescription, string embedColor, string videoEmbedDescription, string videoEmbedColor, string downloadUrl, int chunkSize, string videoUrl, string rootUrl, int idSize, string contactEmail)
+    public UploadServerConfig(int port, string address, string uploadFolder, string thumbnailsFolder, string webRoot,
+        string databaseUser, string databasePassword, string databaseHost, string databaseName, string embedDescription,
+        string embedColor, string videoEmbedDescription, string videoEmbedColor, string downloadUrl, int chunkSize,
+        string videoUrl, string rootUrl, int idSize, string contactEmail)
     {
         Port = port;
         Address = address;
@@ -24,7 +27,7 @@ public class UploadServerConfig
         VideoEmbedColor = videoEmbedColor;
         ContactEmail = contactEmail;
     }
-    
+
     public UploadServerConfig()
     {
         Port = 5102;
@@ -70,7 +73,7 @@ public class UploadServerConfig
 
 
     public override string ToString()
-    {   
+    {
         return $"Port: {Port}\n" +
                $"Address: {Address}\n" +
                $"UploadFolder: {UploadFolder}\n" +

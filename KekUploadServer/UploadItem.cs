@@ -13,6 +13,7 @@ public class UploadItem
         Hash = HashFactory.Crypto.CreateSHA1();
         Hash.Initialize();
     }
+
     public UploadItem(string uploadStreamId, string extension, string name, FileStream fileStream)
     {
         UploadStreamId = uploadStreamId;
@@ -22,7 +23,7 @@ public class UploadItem
         Hash = HashFactory.Crypto.CreateSHA1();
         Hash.Initialize();
     }
-    
+
     public string UploadStreamId { get; set; }
     public string Extension { get; set; }
     public string? Name { get; set; }

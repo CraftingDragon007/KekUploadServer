@@ -11,10 +11,7 @@ var assembly = Assembly.GetExecutingAssembly();
 var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
 var version = fvi.FileVersion;
 
-if (!string.IsNullOrWhiteSpace(version))
-{
-    Console.WriteLine("Version: " + version);
-}
+if (!string.IsNullOrWhiteSpace(version)) Console.WriteLine("Version: " + version);
 
 
 if (File.Exists("config.xml"))
@@ -41,17 +38,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-if(config.Address.Equals("0.0.0.0") || config.Address.Equals("[::]")){
-    builder.WebHost.ConfigureKestrel(options =>
-    {
-        options.ListenAnyIP(config.Port);
-    });
-}else {
-    builder.WebHost.ConfigureKestrel(options =>
-    {
-        options.Listen(IPAddress.Parse(config.Address), config.Port);
-    });
-}
+if (config.Address.Equals("0.0.0.0") || config.Address.Equals("[::]"))
+    builder.WebHost.ConfigureKestrel(options => { options.ListenAnyIP(config.Port); });
+else
+    builder.WebHost.ConfigureKestrel(options => { options.Listen(IPAddress.Parse(config.Address), config.Port); });
 
 var app = builder.Build();
 
@@ -59,7 +49,8 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-var cs = $"Host={config.DatabaseHost};Username={config.DatabaseUser};Password={config.DatabasePassword};Database={config.DatabaseName};";
+var cs =
+    $"Host={config.DatabaseHost};Username={config.DatabaseUser};Password={config.DatabasePassword};Database={config.DatabaseName};";
 
 var con = new NpgsqlConnection(cs);
 con.Open();

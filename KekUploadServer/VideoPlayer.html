@@ -4,23 +4,23 @@
     <title>%name%</title>
     <link href='https://vjs.zencdn.net/7.19.2/video-js.css' rel=\"stylesheet\"/>
     <meta charset='UTF-8'>
-    <meta property='og:type' content='website'>
-    <meta property='twitter:card' content='summary_large_image'>
-    <meta name='title' content='%name%.%extension%'>
-    <meta property='og:title' content='%name%.%extension%'>
-    <meta name='theme-color' content='%videoEmbedColor%'>
-    <meta name='description' content='%description%'>
-    <meta property='og:description' content='%description%'>
+    <meta content='website' property='og:type'>
+    <meta content='summary_large_image' property='twitter:card'>
+    <meta content='%name%.%extension%' name='title'>
+    <meta content='%name%.%extension%' property='og:title'>
+    <meta content='%videoEmbedColor%' name='theme-color'>
+    <meta content='%description%' name='description'>
+    <meta content='%description%' property='og:description'>
     <meta content='%thumbnail%' property='og:image'>
-    <meta property='twitter:image' content='%thumbnail%'>
+    <meta content='%thumbnail%' property='twitter:image'>
 </head>
 <body>
 <video class='video-js'
-        controls
-        data-setup='{}'
-        id='%name%'
-        poster='%thumbnail%'
-        preload='auto'>
+       controls
+       data-setup='{}'
+       id='%name%'
+       poster='%thumbnail%'
+       preload='auto'>
     <source src='/d/%id%' type='video/%extension%'/>
     <p class='vjs-no-js'>
         To view this video please enable JavaScript, and consider upgrading to a
@@ -36,12 +36,13 @@
 <p id="metadata"></p>
 </body>
 <script>
-    function httpGet(url){
+    function httpGet(url) {
         let xmlHttpRequest = new XMLHttpRequest();
         xmlHttpRequest.open("GET", url, false);
         xmlHttpRequest.send(null);
         return xmlHttpRequest.responseText;
     }
+
     const metadata = JSON.parse(httpGet("/m/%id%"));
     document.getElementById("vidInfo").innerHTML = "Video Information";
     document.getElementById("metadata").innerHTML = metadata;
@@ -53,9 +54,11 @@
         background-color: black;
         color: white;
     }
+
     h1 {
         font-size: 2em;
     }
+
     a {
         color: #007fff;
     }
