@@ -10,19 +10,19 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="CraftingDragon007.MediaToolkit" Version="2.0.1"/>
-        <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.2.9"/>
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.2"/>
-        <PackageReference Include="Npgsql" Version="7.0.2"/>
-        <PackageReference Include="SharpHash_Ron4fun" Version="1.1.0"/>
-        <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0"/>
+        <PackageReference Include="CraftingDragon007.MediaToolkit" Version="2.0.1" />
+        <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.2.9" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+        <PackageReference Include="Npgsql" Version="7.0.4" />
+        <PackageReference Include="SharpHash_Ron4fun" Version="1.1.0" />
+        <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Remove="Legal.html"/>
-        <EmbeddedResource Include="Legal.html"/>
-        <None Remove="VideoPlayer.html"/>
-        <EmbeddedResource Include="VideoPlayer.html"/>
+        <None Remove="Legal.html" />
+        <EmbeddedResource Include="Legal.html" />
+        <None Remove="VideoPlayer.html" />
+        <EmbeddedResource Include="VideoPlayer.html" />
     </ItemGroup>
 
 </Project>
