@@ -7,28 +7,28 @@ namespace KekUploadServer.Controllers
         [HttpGet("/")]
         public IActionResult Index()
         {
-            var filePath = Path.Combine(Data.EnsureNotNullConfig().WebRoot, "index.html");
+            var filePath = Path.GetFullPath(Path.Combine(Data.EnsureNotNullConfig().WebRoot, "index.html"));
             return PhysicalFile(filePath, "text/html");
         }
 
         [HttpGet("theme.js")]
         public IActionResult Theme()
         {
-            var filePath = Path.Combine(Data.EnsureNotNullConfig().WebRoot, "theme.js");
+            var filePath = Path.GetFullPath(Path.Combine(Data.EnsureNotNullConfig().WebRoot, "theme.js"));
             return PhysicalFile(filePath, "text/javascript");
         }
 
         [HttpGet("themes/{theme}")]
         public IActionResult Themes(string theme)
         {
-            var filePath = Path.Combine(Data.EnsureNotNullConfig().WebRoot, "themes", theme);
+            var filePath = Path.GetFullPath(Path.Combine(Data.EnsureNotNullConfig().WebRoot, "themes", theme));
             return PhysicalFile(filePath, "text/css");
         }
 
         [HttpGet("assets/{asset}")]
         public IActionResult Assets(string asset)
         {
-            var filePath = Path.Combine(Data.EnsureNotNullConfig().WebRoot, "assets", asset);
+            var filePath = Path.GetFullPath(Path.Combine(Data.EnsureNotNullConfig().WebRoot, "assets", asset));
             var contentType = GetContentType(filePath);
             return PhysicalFile(filePath, contentType);
         }
@@ -36,7 +36,7 @@ namespace KekUploadServer.Controllers
         [HttpGet("favicon.{ext}")]
         public IActionResult Favicon(string ext)
         {
-            var filePath = Path.Combine(Data.EnsureNotNullConfig().WebRoot, $"favicon.{ext}");
+            var filePath = Path.GetFullPath(Path.Combine(Data.EnsureNotNullConfig().WebRoot, $"favicon.{ext}"));
             var contentType = GetContentType(filePath);
             return PhysicalFile(filePath, contentType);
         }

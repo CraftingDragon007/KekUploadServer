@@ -163,7 +163,7 @@ public class UploadController : Controller
             return NotFound(new {generic = "NOT_FOUND", field = "ID", error = "File with id not found"});
         var contentTypeEnumerable = MimeTypeMap.List.MimeTypeMap.GetMimeType(extension);
         var contentType = contentTypeEnumerable.FirstOrDefault();
-        return PhysicalFile(filePath, contentType ?? "application/octet-stream", name + "." + extension);
+        return PhysicalFile(Path.GetFullPath(filePath), contentType ?? "application/octet-stream", name + "." + extension);
     }
 
     [HttpGet]
@@ -244,7 +244,7 @@ public class UploadController : Controller
         using var stream = new FileStream(filePath, FileMode.Open);
         stream.Seek(startByte, SeekOrigin.Begin);
         var range = new byte[contentLength];
-        stream.Read(range, 0, (int)contentLength);
+        var read = stream.Read(range, 0, (int)contentLength);
         stream.Close();
         return new FileContentResult(range, "application/octet-stream");
     }
@@ -285,8 +285,15 @@ public class UploadController : Controller
         var description = Data.EnsureNotNullConfig().VideoEmbedDescription;
         var config = Data.EnsureNotNullConfig();
 
-        var html = System.IO.File.ReadAllText(Url.Content("~/VideoPlayer.html"));
-        html = string.Format(html, id, name, description, extension, Url.Action("DownloadRange", "Upload", new { id }), config.RootUrl, Url.Content("~/t/" + id), config.VideoEmbedColor, Url.Content("~/VideoPlayer.css"), Url.Content("~/VideoPlayer.js"));
+        var html = System.IO.File.ReadAllText(Path.GetFullPath("VideoPlayer.html"));
+        html = html.Replace("%id%", id);
+        html = html.Replace("%name%", name);
+        html = html.Replace("%description%", description);
+        html = html.Replace("%extension%", extension);
+        html = html.Replace("%downloadUrl%", config.DownloadUrl + id);
+        html = html.Replace("%rootUrl%", config.RootUrl);
+        html = html.Replace("%thumbnail%", config.RootUrl + "t/" + id);
+        html = html.Replace("%videoEmbedColor%", config.VideoEmbedColor);
         return Content(html, "text/html");
     }
 
