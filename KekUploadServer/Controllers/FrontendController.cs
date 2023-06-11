@@ -43,6 +43,10 @@ namespace KekUploadServer.Controllers
 
         private static string GetContentType(string filePath)
         {
+            var mimeTypeEnumerable = MimeTypeMap.List.MimeTypeMap.GetMimeType(Path.GetExtension(filePath));
+            if (mimeTypeEnumerable != null)
+                return mimeTypeEnumerable.First();
+            
             var extension = Path.GetExtension(filePath);
             return extension switch
             {

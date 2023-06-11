@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using SharpHash.Base;
+using System;
 
 namespace KekUploadServer.Controllers;
 
@@ -33,7 +34,7 @@ public class UploadController : Controller
             return new JsonResult(new { generic = "HASH_MISMATCH", field = "HASH", error = "Hash doesn't match" })
                 { ContentType = "application/json", SerializerSettings = null, StatusCode = 400 };
         //uploadStream.CopyTo(item.FileStream);
-        await item.FileStream.WriteAsync(data, 0, data.Length);
+        await item.FileStream.WriteAsync(data);
         item.Hash.TransformBytes(data);
         return new JsonResult(new { success = true })
             { ContentType = "application/json", SerializerSettings = null, StatusCode = 200 };
@@ -148,24 +149,21 @@ public class UploadController : Controller
         var streamId = Data.GetStreamIdByUploadId(id);
         if (streamId == null) return NotFound(new { generic = "NOT_FOUND", field = "ID", error = "File with id not found" });
 
-        var extension = Path.GetExtension(id);
-        var name = Path.GetFileNameWithoutExtension(id);
+        var extension = Data.GetExtensionFromId(id);
+        extension ??= "";
+        var name = Data.GetNameFromId(id);
         if (name == null)
         {
             var hash = Data.GetHashFromId(id);
             name = hash ?? "HASH_NOT_FOUND";
         }
-
+        
         var filePath = Path.Combine(Data.EnsureNotNullConfig().UploadFolder, streamId + ".upload");
-        if (System.IO.File.Exists(filePath))
-        {
-            using (var stream = new FileStream(filePath, FileMode.Open))
-            {
-                return File(stream, "application/octet-stream", name + (extension.Equals("none") ? "" : "." + extension));
-            }
-        }
-
-        return NotFound(new { generic = "NOT_FOUND", field = "ID", error = "File with id not found" });
+        if (!System.IO.File.Exists(filePath))
+            return NotFound(new {generic = "NOT_FOUND", field = "ID", error = "File with id not found"});
+        var contentTypeEnumerable = MimeTypeMap.List.MimeTypeMap.GetMimeType(extension);
+        var contentType = contentTypeEnumerable.FirstOrDefault();
+        return PhysicalFile(filePath, contentType ?? "application/octet-stream", name + "." + extension);
     }
 
     [HttpGet]
@@ -175,9 +173,9 @@ public class UploadController : Controller
         var notFound = NotFound(new { generic = "NOT_FOUND", field = "ID", error = "File with id not found" });
         var streamId = Data.GetStreamIdByUploadId(id);
         if (streamId == null) return notFound;
-        var extension = Path.GetExtension(id);
-        var name = Path.GetFileNameWithoutExtension(id);
+        var extension = Data.GetExtensionFromId(id);
         extension ??= "";
+        var name = Data.GetNameFromId(id);
         if (name == null)
         {
             var hash = Data.GetHashFromId(id);
@@ -213,7 +211,7 @@ public class UploadController : Controller
     }
 
     [HttpGet]
-    [Route("d/{id}/{startByte}/{length}")]
+    [Route("d/{id}/{startByte:long}/{length:int}")]
     public IActionResult DownloadRange(string id, long startByte, int length)
     {
         var notFound = NotFound(new { generic = "NOT_FOUND", field = "ID", error = "File with id not found" });
@@ -223,9 +221,9 @@ public class UploadController : Controller
         var filePath = Path.Combine(Data.EnsureNotNullConfig().UploadFolder, streamId + ".upload");
         if (!System.IO.File.Exists(filePath)) return notFound;
 
-        var extension = Path.GetExtension(id);
-        var name = Path.GetFileNameWithoutExtension(id);
+        var extension = Data.GetExtensionFromId(id);
         extension ??= "";
+        var name = Data.GetNameFromId(id);
         if (name == null)
         {
             var hash = Data.GetHashFromId(id);
@@ -243,14 +241,12 @@ public class UploadController : Controller
         HttpContext.Response.ContentType = "application/octet-stream";
         HttpContext.Response.Headers.Add("Content-Disposition", new ContentDispositionHeaderValue(name + (extension.Equals("none") ? "" : "." + extension)).ToString());
 
-        using (var stream = new FileStream(filePath, FileMode.Open))
-        {
-            stream.Seek(startByte, SeekOrigin.Begin);
-            var range = new byte[contentLength];
-            stream.Read(range, 0, (int)contentLength);
-            stream.Close();
-            return new FileContentResult(range, "application/octet-stream");
-        }
+        using var stream = new FileStream(filePath, FileMode.Open);
+        stream.Seek(startByte, SeekOrigin.Begin);
+        var range = new byte[contentLength];
+        stream.Read(range, 0, (int)contentLength);
+        stream.Close();
+        return new FileContentResult(range, "application/octet-stream");
     }
 
 
