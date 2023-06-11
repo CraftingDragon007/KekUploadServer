@@ -49,10 +49,15 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-var cs =
-    $"Host={config.DatabaseHost};Username={config.DatabaseUser};Password={config.DatabasePassword};Database={config.DatabaseName};";
+var connectionStringBuilder = new NpgsqlConnectionStringBuilder
+{
+    Host = config.DatabaseHost,
+    Username = config.DatabaseUser,
+    Password = config.DatabasePassword,
+    Database = config.DatabaseName
+};
 
-var con = new NpgsqlConnection(cs);
+var con = new NpgsqlConnection(connectionStringBuilder.ConnectionString);
 con.Open();
 
 Console.WriteLine("Database connection established");

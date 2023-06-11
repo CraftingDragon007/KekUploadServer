@@ -1,3 +1,4 @@
+using System.Net.Http.Headers;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using SharpHash.Base;
@@ -8,19 +9,21 @@ public class UploadController : Controller
 {
     [HttpPost]
     [Route("u/{stream}/{hash}")]
-    public IActionResult Upload(string stream, string hash)
+    public async Task<IActionResult> Upload(string stream, string hash)
     {
         var item = Data.UploadStreams.GetByStreamId(stream);
         if (item == null)
-            return new JsonResult(new
+        {
+            return NotFound(new
             {
                 generic = "NOT_FOUND",
                 field = "STREAM",
                 error = "Stream not found"
-            }) { ContentType = "application/json", SerializerSettings = null, StatusCode = 404 };
+            });
+        }
 
         var uploadStream = new MemoryStream();
-        HttpContext.Request.Body.CopyToAsync(uploadStream).Wait();
+        await HttpContext.Request.Body.CopyToAsync(uploadStream);
         var data = uploadStream.ToArray();
         if (data.Length > Data.MaxChunkSize)
             return new JsonResult(new { generic = "OVERFLOW", field = "CHUNK", error = "Chunk size exceeded" })
@@ -30,7 +33,7 @@ public class UploadController : Controller
             return new JsonResult(new { generic = "HASH_MISMATCH", field = "HASH", error = "Hash doesn't match" })
                 { ContentType = "application/json", SerializerSettings = null, StatusCode = 400 };
         //uploadStream.CopyTo(item.FileStream);
-        item.FileStream.Write(data, 0, data.Length);
+        await item.FileStream.WriteAsync(data, 0, data.Length);
         item.Hash.TransformBytes(data);
         return new JsonResult(new { success = true })
             { ContentType = "application/json", SerializerSettings = null, StatusCode = 200 };
@@ -142,43 +145,38 @@ public class UploadController : Controller
     [Route("d/{id}")]
     public IActionResult Download(string id)
     {
-        var notFound = new JsonResult(new { generic = "NOT_FOUND", field = "ID", error = "File with id not found" })
-        {
-            ContentType = "application/json",
-            SerializerSettings = null,
-            StatusCode = 404
-        };
         var streamId = Data.GetStreamIdByUploadId(id);
-        if (streamId == null) return notFound;
-        var extension = Data.GetExtensionFromId(id);
-        var name = Data.GetNameFromId(id);
-        extension ??= "";
+        if (streamId == null) return NotFound(new { generic = "NOT_FOUND", field = "ID", error = "File with id not found" });
+
+        var extension = Path.GetExtension(id);
+        var name = Path.GetFileNameWithoutExtension(id);
         if (name == null)
         {
             var hash = Data.GetHashFromId(id);
             name = hash ?? "HASH_NOT_FOUND";
         }
 
-        if (System.IO.File.Exists(Data.EnsureNotNullConfig().UploadFolder + streamId + ".upload"))
-            return File(new FileStream(Data.EnsureNotNullConfig().UploadFolder + streamId + ".upload", FileMode.Open),
-                "application/octet-stream", name + (extension.Equals("none") ? "" : "." + extension));
-        return notFound;
+        var filePath = Path.Combine(Data.EnsureNotNullConfig().UploadFolder, streamId + ".upload");
+        if (System.IO.File.Exists(filePath))
+        {
+            using (var stream = new FileStream(filePath, FileMode.Open))
+            {
+                return File(stream, "application/octet-stream", name + (extension.Equals("none") ? "" : "." + extension));
+            }
+        }
+
+        return NotFound(new { generic = "NOT_FOUND", field = "ID", error = "File with id not found" });
     }
 
     [HttpGet]
     [Route("vs/{id}")]
-    public Task StreamVideo(string id)
+    public async Task<IActionResult> StreamVideo(string id)
     {
-        var notFound = new JsonResult(new { generic = "NOT_FOUND", field = "ID", error = "File with id not found" })
-        {
-            ContentType = "application/json",
-            SerializerSettings = null,
-            StatusCode = 404
-        };
+        var notFound = NotFound(new { generic = "NOT_FOUND", field = "ID", error = "File with id not found" });
         var streamId = Data.GetStreamIdByUploadId(id);
-        if (streamId == null) return notFound.ExecuteResultAsync(ControllerContext);
-        var extension = Data.GetExtensionFromId(id);
-        var name = Data.GetNameFromId(id);
+        if (streamId == null) return notFound;
+        var extension = Path.GetExtension(id);
+        var name = Path.GetFileNameWithoutExtension(id);
         extension ??= "";
         if (name == null)
         {
@@ -186,81 +184,47 @@ public class UploadController : Controller
             name = hash ?? "HASH_NOT_FOUND";
         }
 
-        if (!System.IO.File.Exists(Data.EnsureNotNullConfig().UploadFolder + streamId + ".upload"))
-            return notFound.ExecuteResultAsync(ControllerContext);
+        var filePath = Path.Combine(Data.EnsureNotNullConfig().UploadFolder, streamId + ".upload");
+        if (!System.IO.File.Exists(filePath)) return notFound;
 
         HttpContext.Response.ContentType = "video/" + extension;
-        var buffer = new byte[4096];
-        var stream = new FileStream(Data.EnsureNotNullConfig().UploadFolder + streamId + ".upload", FileMode.Open);
-        /*return new Task(() =>
-        {
-            while (true)
-            {
-                var read = stream.Read(buffer, 0, buffer.Length);
-                if (read == 0)
-                    break;
-                HttpContext.Response.Body.Write(buffer, 0, read);
-            }
-        });*/
-        //return new FileStreamResult(new FileStream("uploads/" + streamId + ".upload", FileMode.Open), "video/" + extension).ExecuteResultAsync(ControllerContext);
-        //var video = new VideoStream(name);
+        HttpContext.Response.Headers.Add("Content-Disposition", new ContentDispositionHeaderValue(name + (extension.Equals("none") ? "" : "." + extension)).ToString());
 
-        HttpContext.Response.Headers.Add("Content-Disposition",
-            "attachment; filename=" + name + (extension.Equals("none") ? "" : "." + extension));
-        return new Task(() =>
+        using (var stream = new FileStream(filePath, FileMode.Open))
         {
-            while (true)
-            {
-                var read = stream.Read(buffer, 0, buffer.Length);
-                if (read == 0)
-                    break;
-                HttpContext.Response.Body.Write(buffer, 0, read);
-            }
-        });
-        //return new PushStreamContent(video.WriteToStream, new MediaTypeHeaderValue("video/" + extension)).CopyToAsync(HttpContext.Response.Body);
+            await stream.CopyToAsync(HttpContext.Response.Body);
+        }
+
+        return new EmptyResult();
     }
 
     [HttpGet]
     [Route("l/{id}")]
-    public IActionResult Lenght(string id)
+    public IActionResult Length(string id)
     {
-        var notFound = new JsonResult(new { generic = "NOT_FOUND", field = "ID", error = "File with id not found" })
-        {
-            ContentType = "application/json",
-            SerializerSettings = null,
-            StatusCode = 404
-        };
+        var notFound = NotFound(new { generic = "NOT_FOUND", field = "ID", error = "File with id not found" });
         var streamId = Data.GetStreamIdByUploadId(id);
         if (streamId == null) return notFound;
-        var extension = Data.GetExtensionFromId(id);
-        var name = Data.GetNameFromId(id);
-        extension ??= "";
-        if (name == null)
-        {
-            var hash = Data.GetHashFromId(id);
-            name = hash ?? "HASH_NOT_FOUND";
-        }
 
-        if (!System.IO.File.Exists(Data.EnsureNotNullConfig().UploadFolder + streamId + ".upload")) return notFound;
+        var filePath = Path.Combine(Data.EnsureNotNullConfig().UploadFolder, streamId + ".upload");
+        if (!System.IO.File.Exists(filePath)) return notFound;
 
-        return base.Content(
-            new FileInfo(Data.EnsureNotNullConfig().UploadFolder + streamId + ".upload").Length.ToString());
+        return Content(new FileInfo(filePath).Length.ToString());
     }
 
     [HttpGet]
-    [Route("d/{id}/{startByte}/{lenght}")]
-    public IActionResult DownloadRange(string id, long startByte, int lenght)
+    [Route("d/{id}/{startByte}/{length}")]
+    public IActionResult DownloadRange(string id, long startByte, int length)
     {
-        var notFound = new JsonResult(new { generic = "NOT_FOUND", field = "ID", error = "File with id not found" })
-        {
-            ContentType = "application/json",
-            SerializerSettings = null,
-            StatusCode = 404
-        };
+        var notFound = NotFound(new { generic = "NOT_FOUND", field = "ID", error = "File with id not found" });
         var streamId = Data.GetStreamIdByUploadId(id);
         if (streamId == null) return notFound;
-        var extension = Data.GetExtensionFromId(id);
-        var name = Data.GetNameFromId(id);
+
+        var filePath = Path.Combine(Data.EnsureNotNullConfig().UploadFolder, streamId + ".upload");
+        if (!System.IO.File.Exists(filePath)) return notFound;
+
+        var extension = Path.GetExtension(id);
+        var name = Path.GetFileNameWithoutExtension(id);
         extension ??= "";
         if (name == null)
         {
@@ -268,22 +232,25 @@ public class UploadController : Controller
             name = hash ?? "HASH_NOT_FOUND";
         }
 
-        if (!System.IO.File.Exists(Data.EnsureNotNullConfig().UploadFolder + streamId + ".upload")) return notFound;
+        var fileSize = new FileInfo(filePath).Length;
+        if (startByte >= fileSize) return notFound;
 
-        var stream = new FileStream(Data.EnsureNotNullConfig().UploadFolder + streamId + ".upload", FileMode.Open);
-        var range = new byte[lenght];
-        try
+        var endByte = Math.Min(startByte + length - 1, fileSize - 1);
+        var contentLength = endByte - startByte + 1;
+
+        HttpContext.Response.Headers.Add("Content-Range", new ContentRangeHeaderValue(startByte, endByte, fileSize).ToString());
+        HttpContext.Response.Headers.Add("Accept-Ranges", "bytes");
+        HttpContext.Response.ContentType = "application/octet-stream";
+        HttpContext.Response.Headers.Add("Content-Disposition", new ContentDispositionHeaderValue(name + (extension.Equals("none") ? "" : "." + extension)).ToString());
+
+        using (var stream = new FileStream(filePath, FileMode.Open))
         {
             stream.Seek(startByte, SeekOrigin.Begin);
-            var read = stream.Read(range, 0, lenght);
+            var range = new byte[contentLength];
+            stream.Read(range, 0, (int)contentLength);
             stream.Close();
+            return new FileContentResult(range, "application/octet-stream");
         }
-        catch (Exception)
-        {
-            return notFound;
-        }
-
-        return File(range, "application/octet-stream", name + (extension.Equals("none") ? "" : "." + extension));
     }
 
 
@@ -291,14 +258,10 @@ public class UploadController : Controller
     [Route("v/{id}")]
     public IActionResult Video(string id)
     {
-        var notFound = new JsonResult(new { generic = "NOT_FOUND", field = "ID", error = "File with id not found" })
-        {
-            ContentType = "application/json",
-            SerializerSettings = null,
-            StatusCode = 404
-        };
+        var notFound = NotFound(new { generic = "NOT_FOUND", field = "ID", error = "File with id not found" });
         var streamId = Data.GetStreamIdByUploadId(id);
         if (streamId == null) return notFound;
+
         var extension = Data.GetExtensionFromId(id);
         var name = Data.GetNameFromId(id);
         extension ??= "";
@@ -308,33 +271,27 @@ public class UploadController : Controller
             name = hash ?? "HASH_NOT_FOUND";
         }
 
-        var path = Data.EnsureNotNullConfig().UploadFolder + streamId + ".upload";
-        if (!System.IO.File.Exists(path)) return notFound;
+        var filePath = Path.Combine(Data.EnsureNotNullConfig().UploadFolder, streamId + ".upload");
+        if (!System.IO.File.Exists(filePath)) return notFound;
+
         var videoExtensions = new List<string>
             { ".MP4", ".MOV", ".M4V", ".AVI", ".WMV", ".MPG", ".MPEG", ".OGG", ".WEBM", ".MKV" };
         if (!videoExtensions.Contains("." + extension.ToUpper()))
+        {
             return new JsonResult(new { generic = "NOT_VIDEO", field = "ID", error = "File is not a video" })
             {
                 ContentType = "application/json",
                 SerializerSettings = null,
                 StatusCode = 405
             };
+        }
 
         var description = Data.EnsureNotNullConfig().VideoEmbedDescription;
-
-        //return base.Content($"<!DOCTYPE html><html><head><title>{name}</title><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, shrink-to-fit=no\"><link rel=\"stylesheet\" href=\"https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css\" integrity=\"sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T\" crossorigin=\"anonymous\"><script src=\"https://code.jquery.com/jquery-3.3.1.slim.min.js\" integrity=\"sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo\" crossorigin=\"anonymous\"></script><script src=\"https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js\" integrity=\"sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1\" crossorigin=\"anonymous\"></script><script src=\"https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js\" integrity=\"sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM\" crossorigin=\"anonymous\"></script><style>body{{background-color:black;color:white;}}</style></head><body><video controls autoplay><source src=\"/d/{id}\" type=\"video/{extension}\"></video></body></html>", "text/html");
-
         var config = Data.EnsureNotNullConfig();
-        var html = System.IO.File.ReadAllText("VideoPlayer.html");
-        html = html.Replace("%id%", id);
-        html = html.Replace("%name%", name);
-        html = html.Replace("%description%", description);
-        html = html.Replace("%extension%", extension);
-        html = html.Replace("%downloadUrl%", config.DownloadUrl + id);
-        html = html.Replace("%rootUrl%", config.RootUrl);
-        html = html.Replace("%thumbnail%", config.RootUrl + "t/" + id);
-        html = html.Replace("%videoEmbedColor%", config.VideoEmbedColor);
-        return base.Content(html, "text/html");
+
+        var html = System.IO.File.ReadAllText(Url.Content("~/VideoPlayer.html"));
+        html = string.Format(html, id, name, description, extension, Url.Action("DownloadRange", "Upload", new { id }), config.RootUrl, Url.Content("~/t/" + id), config.VideoEmbedColor, Url.Content("~/VideoPlayer.css"), Url.Content("~/VideoPlayer.js"));
+        return Content(html, "text/html");
     }
 
     [HttpGet]
@@ -344,29 +301,26 @@ public class UploadController : Controller
         var notFound = new JsonResult(new { generic = "NOT_FOUND", field = "ID", error = "File with id not found" })
         {
             ContentType = "application/json",
-            SerializerSettings = null,
             StatusCode = 404
         };
         var streamId = Data.GetStreamIdByUploadId(id);
         if (streamId == null) return notFound;
-        var extension = Data.GetExtensionFromId(id);
-        if (extension == null) extension = string.Empty;
-        var videoExtensions = new List<string>
-            { ".MP4", ".MOV", ".M4V", ".AVI", ".WMV", ".MPG", ".MPEG", ".OGG", ".WEBM", ".MKV" };
+        var extension = Data.GetExtensionFromId(id) ?? string.Empty;
+        var videoExtensions = new HashSet<string> { ".MP4", ".MOV", ".M4V", ".AVI", ".WMV", ".MPG", ".MPEG", ".OGG", ".WEBM", ".MKV" };
         if (!videoExtensions.Contains("." + extension.ToUpper()))
+        {
             return new JsonResult(new { generic = "NOT_VIDEO", field = "ID", error = "File is not a video" })
             {
                 ContentType = "application/json",
-                SerializerSettings = null,
                 StatusCode = 405
             };
+        }
         var path = Data.EnsureNotNullConfig().UploadFolder + streamId + ".upload";
         if (!System.IO.File.Exists(path)) return notFound;
         var metadata = Data.GetVideoMetadata(path);
         return new JsonResult(metadata.RawMetaData)
         {
             ContentType = "application/json",
-            SerializerSettings = null,
             StatusCode = 200
         };
     }
@@ -378,34 +332,25 @@ public class UploadController : Controller
         var notFound = new JsonResult(new { generic = "NOT_FOUND", field = "ID", error = "File with id not found" })
         {
             ContentType = "application/json",
-            SerializerSettings = null,
             StatusCode = 404
         };
         var streamId = Data.GetStreamIdByUploadId(id);
         if (streamId == null) return notFound;
-        var extension = Data.GetExtensionFromId(id);
-        var name = Data.GetNameFromId(id);
-        extension ??= "";
-        if (name == null)
-        {
-            var hash = Data.GetHashFromId(id);
-            name = hash ?? "HASH_NOT_FOUND";
-        }
-
+        var extension = Data.GetExtensionFromId(id) ?? string.Empty;
+        var name = Data.GetNameFromId(id) ?? Data.GetHashFromId(id) ?? "HASH_NOT_FOUND";
         var path = Data.EnsureNotNullConfig().UploadFolder + streamId + ".upload";
         if (!System.IO.File.Exists(path)) return notFound;
-        var videoExtensions = new List<string>
-            { ".MP4", ".MOV", ".M4V", ".AVI", ".WMV", ".MPG", ".MPEG", ".OGG", ".WEBM", ".MKV" };
+        var videoExtensions = new HashSet<string> { ".MP4", ".MOV", ".M4V", ".AVI", ".WMV", ".MPG", ".MPEG", ".OGG", ".WEBM", ".MKV" };
         if (!videoExtensions.Contains("." + extension.ToUpper()))
+        {
             return new JsonResult(new { generic = "NOT_VIDEO", field = "ID", error = "File is not a video" })
             {
                 ContentType = "application/json",
-                SerializerSettings = null,
                 StatusCode = 405
             };
+        }
         var thumbnail = Data.GetVideoThumbnail(path, id);
-        var thumbnailStream = new FileStream(Data.EnsureNotNullConfig().ThumbnailsFolder + thumbnail, FileMode.Open,
-            FileAccess.Read);
+        var thumbnailStream = new FileStream(Data.EnsureNotNullConfig().ThumbnailsFolder + thumbnail, FileMode.Open, FileAccess.Read);
         return new FileStreamResult(thumbnailStream, "image/jpeg");
     }
 
@@ -417,20 +362,12 @@ public class UploadController : Controller
         var notFound = new JsonResult(new { generic = "NOT_FOUND", field = "ID", error = "File with id not found" })
         {
             ContentType = "application/json",
-            SerializerSettings = null,
             StatusCode = 404
         };
         var streamId = Data.GetStreamIdByUploadId(id);
         if (streamId == null) return notFound;
-        var extension = Data.GetExtensionFromId(id);
-        var name = Data.GetNameFromId(id);
-        extension ??= "";
-        if (name == null)
-        {
-            var hash = Data.GetHashFromId(id);
-            name = hash ?? "HASH_NOT_FOUND";
-        }
-
+        var extension = Data.GetExtensionFromId(id) ?? string.Empty;
+        var name = Data.GetNameFromId(id) ?? Data.GetHashFromId(id) ?? "HASH_NOT_FOUND";
         var path = Data.EnsureNotNullConfig().UploadFolder + streamId + ".upload";
         if (!System.IO.File.Exists(path)) return notFound;
         var contentBuilder = new StringBuilder();
@@ -439,30 +376,33 @@ public class UploadController : Controller
                               $"<meta http-equiv=\"Refresh\" content=\"0; url='{Data.EnsureNotNullConfig().DownloadUrl + id}'\" />" +
                               "<meta charset='UTF-8'>" +
                               "<meta property='og:type' content='website'>" +
-                              "<meta property='twitter:card' content='" + "summary_large_image" + "'>" +
-                              $"<meta name='title' content='{name + "." + extension}'>" +
+                              "<meta property='twitter:card' content='summary_large_image'>");
+        contentBuilder.Append($"<meta name='title' content='{name + "." + extension}'>" +
                               $"<meta property='og:title' content='{name + "." + extension}'>" +
                               $"<meta name='theme-color' content='{Data.EnsureNotNullConfig().EmbedColor}'>" +
                               $"<meta name='description' content='{description}'>");
-        var imageExtensions = new List<string> { ".JPG", ".JPEG", ".JPE", ".BMP", ".GIF", ".PNG" };
-        var videoExtensions = new List<string>
+        var imageExtensions = new HashSet<string> { ".JPG", ".JPEG", ".JPE", ".BMP", ".GIF", ".PNG" };
+        var videoExtensions = new HashSet<string>
             { ".MP4", ".MOV", ".M4V", ".AVI", ".WMV", ".MPG", ".MPEG", ".OGG", ".WEBM", ".MKV" };
         if (imageExtensions.Contains("." + extension.ToUpper()))
+        {
             contentBuilder.Append(
                 $"<meta property='og:image' content='{Data.EnsureNotNullConfig().DownloadUrl + id}'>" +
-                $"<meta property='twitter:image' content='{Data.EnsureNotNullConfig().DownloadUrl + id}'>" +
-                $"<meta property='og:description' content='{description}'>" +
-                $"<meta property='twitter:description' content='{description}'>");
+                $"<meta property='twitter:image' content='{Data.EnsureNotNullConfig().DownloadUrl + id}'>");
+        }
         else if (videoExtensions.Contains("." + extension.ToUpper()))
+        {
             contentBuilder.Append(
-                $"<meta property='og:image' content='{Data.EnsureNotNullConfig().RootUrl + "t/" + id}'>" +
-                $"<meta property='twitter:image' content='{Data.EnsureNotNullConfig().RootUrl + "t/" + id}'>" +
-                $"<meta property='og:description' content='{description + "\n" + "Watch video at: " + Data.EnsureNotNullConfig().VideoUrl + id}'>" +
-                $"<meta property='twitter:description' content='{description + "\n" + "Watch video at: " + Data.EnsureNotNullConfig().VideoUrl + id}'>");
+                $"<meta property='og:image' content='{Data.EnsureNotNullConfig().RootUrl}t/{id}'>" +
+                $"<meta property='twitter:image' content='{Data.EnsureNotNullConfig().RootUrl}t/{id}'>" +
+                $"<meta property='og:description' content='{description}\nWatch video at: {Data.EnsureNotNullConfig().VideoUrl + id}'>" +
+                $"<meta property='twitter:description' content='{description}\nWatch video at: {Data.EnsureNotNullConfig().VideoUrl + id}'>");
+        }
         else
+        {
             contentBuilder.Append($"<meta property='og:description' content='{description}'>" +
                                   $"<meta property='twitter:description' content='{description}'>");
-
-        return base.Content(contentBuilder.ToString(), "text/html");
+        }
+        return Content(contentBuilder.ToString(), "text/html");
     }
 }

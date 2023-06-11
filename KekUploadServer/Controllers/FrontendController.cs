@@ -1,45 +1,57 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace KekUploadServer.Controllers;
-
-public class FrontendController : Controller
+namespace KekUploadServer.Controllers
 {
-    [Route("/")]
-    [HttpGet]
-    public IActionResult Index()
+    public class FrontendController : Controller
     {
-        return File(new FileStream(Data.EnsureNotNullConfig().WebRoot + "index.html", FileMode.Open), "text/html");
-    }
+        [HttpGet("/")]
+        public IActionResult Index()
+        {
+            var filePath = Path.Combine(Data.EnsureNotNullConfig().WebRoot, "index.html");
+            return PhysicalFile(filePath, "text/html");
+        }
 
-    [Route("theme.js")]
-    [HttpGet]
-    public IActionResult Theme()
-    {
-        return File(new FileStream(Data.EnsureNotNullConfig().WebRoot + "theme.js", FileMode.Open), "text/javascript");
-    }
+        [HttpGet("theme.js")]
+        public IActionResult Theme()
+        {
+            var filePath = Path.Combine(Data.EnsureNotNullConfig().WebRoot, "theme.js");
+            return PhysicalFile(filePath, "text/javascript");
+        }
 
-    [Route("themes/{theme}")]
-    [HttpGet]
-    public IActionResult Themes(string theme)
-    {
-        return File(new FileStream(Data.EnsureNotNullConfig().WebRoot + "themes/" + theme, FileMode.Open), "text/css");
-    }
+        [HttpGet("themes/{theme}")]
+        public IActionResult Themes(string theme)
+        {
+            var filePath = Path.Combine(Data.EnsureNotNullConfig().WebRoot, "themes", theme);
+            return PhysicalFile(filePath, "text/css");
+        }
 
-    [Route("assets/{asset}")]
-    [HttpGet]
-    public IActionResult Assets(string asset)
-    {
-        var file = Data.EnsureNotNullConfig().WebRoot + "assets/" + asset;
-        var fileInfo = new FileInfo(file);
-        return File(new FileStream(file, FileMode.Open),
-            "text/" + fileInfo.Extension.Replace(".", "").Replace("js", "javascript"));
-    }
+        [HttpGet("assets/{asset}")]
+        public IActionResult Assets(string asset)
+        {
+            var filePath = Path.Combine(Data.EnsureNotNullConfig().WebRoot, "assets", asset);
+            var contentType = GetContentType(filePath);
+            return PhysicalFile(filePath, contentType);
+        }
 
-    [Route("favicon.{ext}")]
-    [HttpGet]
-    public IActionResult Favicon(string ext)
-    {
-        return File(new FileStream(Data.EnsureNotNullConfig().WebRoot + "favicon." + ext, FileMode.Open),
-            "image/" + ext);
+        [HttpGet("favicon.{ext}")]
+        public IActionResult Favicon(string ext)
+        {
+            var filePath = Path.Combine(Data.EnsureNotNullConfig().WebRoot, $"favicon.{ext}");
+            var contentType = GetContentType(filePath);
+            return PhysicalFile(filePath, contentType);
+        }
+
+        private static string GetContentType(string filePath)
+        {
+            var extension = Path.GetExtension(filePath);
+            return extension switch
+            {
+                ".css" => "text/css",
+                ".js" => "text/javascript",
+                ".png" => "image/png",
+                ".ico" => "image/x-icon",
+                _ => "application/octet-stream",
+            };
+        }
     }
 }
