@@ -12,6 +12,18 @@ public class UploadController : Controller
     [Route("u/{stream}/{hash}")]
     public async Task<IActionResult> Upload(string stream, string hash)
     {
+        return await ProcessUploadedData(stream, hash);
+    }
+
+    [HttpPost]
+    [Route("u/{stream}")]
+    public async Task<IActionResult> Upload(string stream)
+    {
+        return await ProcessUploadedData(stream);
+    }
+
+    public async Task<IActionResult> ProcessUploadedData(string stream, string? hash = null)
+    {
         var item = Data.UploadStreams.GetByStreamId(stream);
         if (item == null)
         {
@@ -22,18 +34,20 @@ public class UploadController : Controller
                 error = "Stream not found"
             });
         }
-
+        
         var uploadStream = new MemoryStream();
         await HttpContext.Request.Body.CopyToAsync(uploadStream);
         var data = uploadStream.ToArray();
         if (data.Length > Data.MaxChunkSize)
             return new JsonResult(new { generic = "OVERFLOW", field = "CHUNK", error = "Chunk size exceeded" })
                 { ContentType = "application/json", SerializerSettings = null, StatusCode = 400 };
-        var chunkHash = HashFactory.Crypto.CreateSHA1().ComputeBytes(data).ToString().ToLower().Replace("-", "");
-        if (chunkHash != hash)
-            return new JsonResult(new { generic = "HASH_MISMATCH", field = "HASH", error = "Hash doesn't match" })
-                { ContentType = "application/json", SerializerSettings = null, StatusCode = 400 };
-        //uploadStream.CopyTo(item.FileStream);
+        if (hash != null)
+        {
+            var chunkHash = HashFactory.Crypto.CreateSHA1().ComputeBytes(data).ToString().ToLower().Replace("-", "");
+            if (chunkHash != hash)
+                return new JsonResult(new {generic = "HASH_MISMATCH", field = "HASH", error = "Hash doesn't match"})
+                    {ContentType = "application/json", SerializerSettings = null, StatusCode = 400};
+        }
         await item.FileStream.WriteAsync(data);
         item.Hash.TransformBytes(data);
         return new JsonResult(new { success = true })

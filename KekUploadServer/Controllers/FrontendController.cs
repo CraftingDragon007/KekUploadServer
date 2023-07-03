@@ -8,21 +8,21 @@ namespace KekUploadServer.Controllers
         public IActionResult Index()
         {
             var filePath = Path.GetFullPath(Path.Combine(Data.EnsureNotNullConfig().WebRoot, "index.html"));
-            return PhysicalFile(filePath, "text/html");
+            return System.IO.File.Exists(filePath) ? PhysicalFile(filePath, "text/html") : NotFound();
         }
 
         [HttpGet("theme.js")]
         public IActionResult Theme()
         {
             var filePath = Path.GetFullPath(Path.Combine(Data.EnsureNotNullConfig().WebRoot, "theme.js"));
-            return PhysicalFile(filePath, "text/javascript");
+            return System.IO.File.Exists(filePath) ? PhysicalFile(filePath, "text/javascript") : NotFound();
         }
 
         [HttpGet("themes/{theme}")]
         public IActionResult Themes(string theme)
         {
             var filePath = Path.GetFullPath(Path.Combine(Data.EnsureNotNullConfig().WebRoot, "themes", theme));
-            return PhysicalFile(filePath, "text/css");
+            return System.IO.File.Exists(filePath) ? PhysicalFile(filePath, "text/css") : NotFound();
         }
 
         [HttpGet("assets/{asset}")]
@@ -30,7 +30,7 @@ namespace KekUploadServer.Controllers
         {
             var filePath = Path.GetFullPath(Path.Combine(Data.EnsureNotNullConfig().WebRoot, "assets", asset));
             var contentType = GetContentType(filePath);
-            return PhysicalFile(filePath, contentType);
+            return System.IO.File.Exists(filePath) ? PhysicalFile(filePath, contentType) : NotFound();
         }
 
         [HttpGet("favicon.{ext}")]
@@ -38,11 +38,13 @@ namespace KekUploadServer.Controllers
         {
             var filePath = Path.GetFullPath(Path.Combine(Data.EnsureNotNullConfig().WebRoot, $"favicon.{ext}"));
             var contentType = GetContentType(filePath);
-            return PhysicalFile(filePath, contentType);
+            return System.IO.File.Exists(filePath) ? PhysicalFile(filePath, contentType) : NotFound();
         }
 
         private static string GetContentType(string filePath)
         {
+            if(!System.IO.File.Exists(filePath))
+                return "application/octet-stream";
             var mimeTypeEnumerable = MimeTypeMap.List.MimeTypeMap.GetMimeType(Path.GetExtension(filePath));
             if (mimeTypeEnumerable != null)
                 return mimeTypeEnumerable.First();
