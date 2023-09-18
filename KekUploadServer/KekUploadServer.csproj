@@ -14,7 +14,7 @@
         <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.2.9" />
         <PackageReference Include="MimeTypeMap.List" Version="2.1.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-        <PackageReference Include="Npgsql" Version="7.0.4" />
+        <PackageReference Include="Npgsql" Version="7.0.6" />
         <PackageReference Include="SharpHash_Ron4fun" Version="1.1.0" />
         <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
     </ItemGroup>
