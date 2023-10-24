@@ -11,7 +11,7 @@
 
     <ItemGroup>
         <PackageReference Include="CraftingDragon007.MediaToolkit" Version="2.0.1" />
-        <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.2.9" />
+        <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.3.0" />
         <PackageReference Include="MimeTypeMap.List" Version="2.1.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
         <PackageReference Include="Npgsql" Version="7.0.6" />
