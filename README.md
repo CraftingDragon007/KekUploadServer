@@ -1,3 +1,5 @@
+# Old version! Please contribute to this repo instead: https://github.com/GamePowerX/KekUploadServer
+---
 ```
 ██╗  ██╗███████╗██╗  ██╗██╗   ██╗██████╗ ██╗      ██████╗  █████╗ ██████╗ 
 ██║ ██╔╝██╔════╝██║ ██╔╝██║   ██║██╔══██╗██║     ██╔═══██╗██╔══██╗██╔══██╗
